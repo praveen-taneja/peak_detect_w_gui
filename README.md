@@ -1,3 +1,5 @@
+Peak detection using machine learning
+
 General idea: 1st we generate training data. Then we classify and predict. Finally, we visualize predictions. 
 
 1. Start by running the file peak_detect_dialog_w_gui.
