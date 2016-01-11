@@ -8,9 +8,6 @@
 
 *Start by running the file peak_detect_dialog_w_gui. Useful tips are displayed when mouse is over different fields.*
 
-
-Training data
-
 Some important parameters to adjust are listed below. Some trial and error is need for for each dataset. Parameters can be saved and loaded for future use.
 
 
