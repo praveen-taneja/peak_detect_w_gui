@@ -1,6 +1,7 @@
 ###Peak detection using machine learning
 
 **General idea** 
+
 1. Generate training data.
 2. Classify and predict. 
 3. Visualize predictions. 
