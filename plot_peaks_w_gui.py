@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import math
 from matplotlib.text import Text
 import sys
-import peak_detect_utils1 as pd_utils
+import peak_detect_utils_w_gui as pd_utils
 import os.path
 import imp
 imp.reload(pd_utils)

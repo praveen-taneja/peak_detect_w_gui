@@ -11,7 +11,7 @@ import sys
 import numpy as np
 #from sklearn.metrics import accuracy_score
 import collections
-import peak_detect_utils1 as pd_utils
+import peak_detect_utils_w_gui as pd_utils
 import imp
 imp.reload(pd_utils)
 

@@ -23,7 +23,7 @@ import pprint
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn import svm
 
-import gen_train_data_w_gui1 as gen_train_data
+import gen_train_data_w_gui as gen_train_data
 import classify_peaks_w_gui as classific
 import plot_peaks_w_gui as plot_peaks
 import imp
@@ -217,7 +217,7 @@ class MyDialog(wx.Dialog):
         self.text_ctrl_13.SetToolTipString(("Window sigma (10)"))
         self.label_11.SetToolTipString(("List of additional features to mark per peak"))
         self.text_ctrl_14.SetToolTipString(("Eg. Threshold1 Threshold2"))
-        self.button_8.SetToolTip(wx.ToolTip(_("Browse peaks (including false positives)")))
+        self.button_8.SetToolTip(wx.ToolTip(("Browse peaks (including false positives)")))
         self.button_2.SetToolTipString(("Start generating training data. Delete/ Rename 'results' directory for new analysis"))
         
         #self.label_12.SetToolTip(wx.ToolTip(_("Choose algorithm for peak classification")))
@@ -347,7 +347,7 @@ class MyDialog(wx.Dialog):
         self.notebook_1.AddPage(self.notebook_1_pane_2, ("Train and Predict"))
         self.notebook_1.AddPage(self.notebook_1_pane_3, ("Visualize"))
         self.notebook_1.AddPage(self.notebook_1_pane_4, ("Load/ Save"))
-        self.notebook_1.AddPage(self.notebook_1_pane_5, _("About"))
+        self.notebook_1.AddPage(self.notebook_1_pane_5, ("About"))
         
         sizer_1.Add(self.notebook_1, 1, 0, 0)
         self.SetSizer(sizer_1)

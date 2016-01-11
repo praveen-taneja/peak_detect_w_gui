@@ -130,7 +130,7 @@ def pt_get_all_peaks(fn_list, results_dir, start, end, set_col_names,
         peak_x = peak_x[peak_x < (len(data1d) - PEAK_POST_CROP_WIN)]
         num_peaks = len(peak_x)
 
-        print 'file', filenum, 'of', num_files, ': num peaks (including false-positives)', len(peak_x)
+        print 'file', filenum + 1, 'of', num_files, ': num peaks (including false-positives)', len(peak_x)
         
         # make empty data frame for cropped peaks
         x = np.zeros([num_peaks, PEAK_POST_CROP_WIN + PEAK_PRE_CROP_WIN])
@@ -522,7 +522,8 @@ def pt_make_plot(peak_x0, peak_y0, data, deriv2_filt, display_deriv2, DISPLAY_WI
         ax1.set_ylim(data_mean + yrange[0], data_mean + yrange[1])
     
     #ax = plt.gca()
-    plt.xlim(peak_x0 - 0.5*DISPLAY_WIN, peak_x0 + 0.5*DISPLAY_WIN)
+    #plt.xlim(peak_x0 - 0.5*DISPLAY_WIN, peak_x0 + 0.5*DISPLAY_WIN)
+    plt.xlim(x1, x2)
     
     if pick_feature:
         plt.text(0.6, 0.9, 'Choose ' + pick_feature, fontsize = 15, 

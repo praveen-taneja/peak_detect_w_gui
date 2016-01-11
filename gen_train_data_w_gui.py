@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import glob
 import random
 #import collections
-import peak_detect_utils1 as pd_utils
+import peak_detect_utils_w_gui as pd_utils
 import os.path
 import imp
 imp.reload(pd_utils)
