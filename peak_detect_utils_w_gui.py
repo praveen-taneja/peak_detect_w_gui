@@ -131,7 +131,7 @@ def pt_get_all_peaks(fn_list, results_dir, start, end, set_col_names,
         num_peaks = len(peak_x)
 
         print 'file', filenum + 1, 'of', num_files, ': num peaks (including false-positives)', len(peak_x)
-        
+        print ' '
         # make empty data frame for cropped peaks
         x = np.zeros([num_peaks, PEAK_POST_CROP_WIN + PEAK_PRE_CROP_WIN])
         x[:] = np.NAN
@@ -219,7 +219,6 @@ def pt_local_extrema_w_thresh(data1d, filter_win_size, filter_sigma,
         peak_indices = peak_indices[0]
         print 'Num peaks without thresh:', len(peak_indices)#, type(peak_indices)
         ###print peak_indices[0:10]
-        print ' '
         peak_indices = [x for x in peak_indices if deriv2_filt[x] < deriv2_thresh ]
         print 'Num peaks with thresh:', len(peak_indices)#, type(peak_indices)
         ###print peak_indices[0:10]
@@ -228,7 +227,6 @@ def pt_local_extrema_w_thresh(data1d, filter_win_size, filter_sigma,
         peak_indices = peak_indices[0]
         print 'Num peaks without thresh:', len(peak_indices)#, type(peak_indices)
         #print peak_indices[0:10]
-        print ' '
         peak_indices = [x for x in peak_indices if deriv2_filt[x] > deriv2_thresh ]
         print 'Num peaks with thresh:', len(peak_indices)#, type(peak_indices)
         #print peak_indices[0:10]
@@ -252,7 +250,7 @@ def pt_gaussian_filter(data1d, window_size, sigma):
     
     window = signal.general_gaussian(window_size, sig = sigma, p = 1.0)
     ##print 'window, data1d shapes:', window.shape, data1d.shape 
-    filtered = signal.fftconvolve(window, data1d)
+    filtered = signal.fftconvolve(data1d, window)
     # filtered signal is on a much different scale: rescale after
     # convolution
    # sometimes the following can become zero.
