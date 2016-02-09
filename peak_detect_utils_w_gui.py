@@ -67,8 +67,9 @@ def pt_load_data(filename, down_sample_factor, start, end, set_col_names = False
     else:
         df = pd.read_table(filename, delimiter = ',')
     if down_sample_factor > 1:
-        df = pt_downsample(df, down_sample_factor)                
-    df = df[start:end]
+        df = pt_downsample(df, down_sample_factor)
+     # 02/03/16 start index at 0 instead of 'start'                
+    df = df[start:end].reset_index(drop = True)
     return df
 
 def pt_get_all_peaks(fn_list, results_dir, start, end, set_col_names, 
@@ -105,6 +106,7 @@ def pt_get_all_peaks(fn_list, results_dir, start, end, set_col_names,
         #plt.plot(deriv2)
         #plt.plot(deriv2_filt)
         #plt.show()
+        print 'file', filenum + 1, 'of', num_files, ':',os.path.basename(filename)
         peak_x = pt_local_extrema_w_thresh(data1d, filter_win_size, 
                                             filter_sigma, PEAK_POLARITY, 
                                             PEAK_NPNTS_THRESH, DERIV2_THRESH)
@@ -130,8 +132,8 @@ def pt_get_all_peaks(fn_list, results_dir, start, end, set_col_names,
         peak_x = peak_x[peak_x < (len(data1d) - PEAK_POST_CROP_WIN)]
         num_peaks = len(peak_x)
 
-        print 'file', filenum + 1, 'of', num_files, ': num peaks (including false-positives)', len(peak_x)
-        print ' '
+        #print 'file', filenum + 1, 'of', num_files, '(',os.path.basename(filename),')', ': num peaks (including false-positives)', len(peak_x)
+        #print ' '
         # make empty data frame for cropped peaks
         x = np.zeros([num_peaks, PEAK_POST_CROP_WIN + PEAK_PRE_CROP_WIN])
         x[:] = np.NAN
@@ -221,6 +223,7 @@ def pt_local_extrema_w_thresh(data1d, filter_win_size, filter_sigma,
         ###print peak_indices[0:10]
         peak_indices = [x for x in peak_indices if deriv2_filt[x] < deriv2_thresh ]
         print 'Num peaks with thresh:', len(peak_indices)#, type(peak_indices)
+        print ' '
         ###print peak_indices[0:10]
     else: # look for maxima in double derivative
         peak_indices = signal.argrelextrema(deriv2_filt, np.greater, order = n_pnts_thresh)
@@ -229,6 +232,7 @@ def pt_local_extrema_w_thresh(data1d, filter_win_size, filter_sigma,
         #print peak_indices[0:10]
         peak_indices = [x for x in peak_indices if deriv2_filt[x] > deriv2_thresh ]
         print 'Num peaks with thresh:', len(peak_indices)#, type(peak_indices)
+        print ' '        
         #print peak_indices[0:10]
     return np.array(peak_indices)
     
@@ -240,6 +244,9 @@ def pt_filtered_deriv2(data1d, filter_win_size, filter_sigma):
     deriv1 = np.gradient(data)
     deriv2 = np.gradient(deriv1)
     deriv2_filt = pt_gaussian_filter(deriv2, filter_win_size, filter_sigma) # filtered
+    # return dataframe instead of np.array   
+    #deriv2_filt = pd.DataFrame(deriv2_filt, columns = ['deriv2_filt'], 
+    #                           index = data1d.index) 
     return deriv2_filt
 
 def pt_gaussian_filter(data1d, window_size, sigma):
@@ -473,6 +480,8 @@ def pt_make_plot(peak_x0, peak_y0, data, deriv2_filt, display_deriv2, DISPLAY_WI
         ax2.yaxis.set_ticks_position("right")
         ax1.yaxis.set_ticks_position("left")
         ax2.plot(deriv2_filt, color = 'lightgray', zorder = 1)
+        
+
         if pick_feature != None:
             # picker = 5. Fire event if click within 5 points.
             ax1.plot(data, color = 'blue', picker = 5, zorder = 1)  
@@ -518,6 +527,10 @@ def pt_make_plot(peak_x0, peak_y0, data, deriv2_filt, display_deriv2, DISPLAY_WI
         ax1.set_ylim(data_mean - 10*data_std, data_mean + 10*data_std)
     else:
         ax1.set_ylim(data_mean + yrange[0], data_mean + yrange[1])
+        
+    #deriv2_mean = deriv2_filt[x1 : x2 +1].mean(axis = 0)[0]
+    #deriv2_std = deriv2_filt[x1 : x2 + 1].std(axis = 0)[0]
+    #ax2.set_ylim(deriv2_mean - 10*deriv2_std, deriv2_mean + 10*deriv2_std)
     
     #ax = plt.gca()
     #plt.xlim(peak_x0 - 0.5*DISPLAY_WIN, peak_x0 + 0.5*DISPLAY_WIN)
