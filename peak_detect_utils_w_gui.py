@@ -69,6 +69,10 @@ def pt_load_data(filename, down_sample_factor, start, end, set_col_names = False
     if down_sample_factor > 1:
         df = pt_downsample(df, down_sample_factor)
      # 02/03/16 start index at 0 instead of 'start'                
+    if start == '':
+        start = None # ie start from 1st point # 2/9/16
+    if end == '':
+        end = None # ie include till last point # 2/9/16
     df = df[start:end].reset_index(drop = True)
     return df
 
@@ -244,6 +248,10 @@ def pt_filtered_deriv2(data1d, filter_win_size, filter_sigma):
     deriv1 = np.gradient(data)
     deriv2 = np.gradient(deriv1)
     deriv2_filt = pt_gaussian_filter(deriv2, filter_win_size, filter_sigma) # filtered
+    # replaced gaussian filter with rolling mean (to lessen phase-shift)03/03/16
+    #print 'filter_sigma', filter_sigma    
+    #deriv2_filt = pd.rolling_mean(deriv2, filter_sigma, center = True)
+    #deriv2_filt = deriv2_filt.values.reshape([len(deriv2_filt), ])
     # return dataframe instead of np.array   
     #deriv2_filt = pd.DataFrame(deriv2_filt, columns = ['deriv2_filt'], 
     #                           index = data1d.index) 
@@ -254,10 +262,16 @@ def pt_gaussian_filter(data1d, window_size, sigma):
     source: http://stackoverflow.com/questions/25571260/
     scipy-signal-find-peaks-cwt-not-finding-the-peaks-accurately
     '''
-    
-    window = signal.general_gaussian(window_size, sig = sigma, p = 1.0)
+    #print 'filter window_size =', window_size
+    #print 'filter window_width =', sigma
+    # autosetting window_size based on sigma 03/04/16 based on
+    # http://stackoverflow.com/questions/2773606/gaussian-filter-in-matlab
+    window_size = 2*int(np.ceil(3.0*sigma))+1 # changed to 3.0*igma instead of 2*sigma
+    #print 'window_size', window_size
+    #print 'sigma', sigma
+    window = signal.general_gaussian(window_size, p = 1.0, sig = sigma)
     ##print 'window, data1d shapes:', window.shape, data1d.shape 
-    filtered = signal.fftconvolve(data1d, window)
+    filtered = signal.fftconvolve(data1d, window, mode = 'same')
     # filtered signal is on a much different scale: rescale after
     # convolution
    # sometimes the following can become zero.
@@ -265,7 +279,9 @@ def pt_gaussian_filter(data1d, window_size, sigma):
         filtered = (np.average(data1d) / np.average(filtered)) * filtered
     # filtered data is phase shifted by 0.5* window size.
     shift_num = -1*int(np.floor(window_size/2.0))
-    filtered = np.roll(filtered, shift_num)
+    # checked that it is indeed shifted if mode = 'full', so don't comment the 
+    #following line . For mode = 'same' shifting is not needed 03/03/16
+    #filtered = np.roll(filtered, shift_num)
     # filtered data is longer by window size. Keep only original length
     filtered = filtered[ : len(data1d)]
     '''    
@@ -477,26 +493,26 @@ def pt_make_plot(peak_x0, peak_y0, data, deriv2_filt, display_deriv2, DISPLAY_WI
         ax2= plt.gca()
         ax1 = ax2.twinx()
         # Without following, ax1 will be plotted on right axis.
-        ax2.yaxis.set_ticks_position("right")
-        ax1.yaxis.set_ticks_position("left")
+        #ax2.yaxis.set_ticks_position("right")
+        #ax1.yaxis.set_ticks_position("left")
         ax2.plot(deriv2_filt, color = 'lightgray', zorder = 1)
         
 
         if pick_feature != None:
             # picker = 5. Fire event if click within 5 points.
-            ax1.plot(data, color = 'blue', picker = 5, zorder = 1)  
+            ax1.plot(data, color = 'lightblue', picker = 5, zorder = 1)  
         else:
-            ax1.plot(data, color = 'blue', zorder = 1)
-        ax1.plot(peak_x0, peak_y0, color = 'blue', marker = 'o', linewidth = 0, zorder = 0)        
+            ax1.plot(data, color = 'lightblue', zorder = 1)
+        ax1.plot(peak_x0, peak_y0, color = 'blue', marker = 'o', markersize = 10, linewidth = 0, zorder = 2)        
                
     else:
         ax1= plt.gca()
         if pick_feature != None:
             # picker = 5. Fire event if click within 5 points.)
-            ax1.plot(data, color = 'blue', picker = 5, zorder = 1)  
+            ax1.plot(data, color = 'lightblue', picker = 5, zorder = 1)  
         else:
-            ax1.plot(data, color = 'blue', zorder = 1)
-        ax1.plot(peak_x0, peak_y0, color = 'blue', marker = 'o', linewidth = 0, zorder = 0)
+            ax1.plot(data, color = 'lightblue', zorder = 1)
+        ax1.plot(peak_x0, peak_y0, color = 'blue', marker = 'o', markersize = 10, linewidth = 0, zorder = 2)
     #plt.plot(pd.rolling_std(data_filtered, 50, center=True), color = 'green')
 
     print ' '
@@ -721,7 +737,7 @@ def pt_display_make_plot(peak_x0, peak_y0, features_xy, selected0, file_name0,
                         plot_full_traces = False):
     
     #print 'plot_full_traces', plot_full_traces            
-    plt.plot(data, color = 'red')
+    plt.plot(data, 'lightblue', zorder = 1)
     #plt.plot(data_filtered, color = 'red')
     
     print ' '
@@ -763,7 +779,7 @@ def pt_display_make_plot(peak_x0, peak_y0, features_xy, selected0, file_name0,
     
     if plot_full_traces == False:
         if selected0 == 0:
-            plt.plot(peak_x0, peak_y0, color = 'red', marker = 'o', linewidth = 0, markersize = 10)
+            plt.plot(peak_x0, peak_y0, color = 'red', marker = 'o', markersize = 10, linewidth = 0, zorder = 2)
             for (feature_x, feature_y) in features_xy:
                 # convert from pandas series to value. Useful if value = NaN
                 feature_x = feature_x[0]
@@ -771,10 +787,10 @@ def pt_display_make_plot(peak_x0, peak_y0, features_xy, selected0, file_name0,
                 if np.isnan(feature_x) or np.isnan(feature_y):
                     print ('Warning!', 'feature lies outside cropped peaks.'  
                         'Increase range of cropped peaks to include all features')
-                plt.plot(feature_x, feature_y, color = 'red', marker = '*', linewidth = 0, markersize = 10)
+                plt.plot(feature_x, feature_y, color = 'red', marker = '*', markersize = 10, linewidth = 0, zorder = 2)
                 
         else:
-            plt.plot(peak_x0, peak_y0, color = 'green', marker = 'o', linewidth = 0, markersize = 10)
+            plt.plot(peak_x0, peak_y0, color = 'green', marker = 'o', linewidth = 0, markersize = 10, zorder = 2)
             for (feature_x, feature_y) in features_xy:
                 # convert from pandas series to value. Useful if value = NaN
                 feature_x = feature_x[0] 
@@ -782,11 +798,11 @@ def pt_display_make_plot(peak_x0, peak_y0, features_xy, selected0, file_name0,
                 if np.isnan(feature_x) or np.isnan(feature_y):
                     print ('Warning!', 'feature lies outside cropped peaks.'  
                         'Increase range of cropped peaks to include all features')
-                plt.plot(feature_x, feature_y, color = 'green', marker = '*', linewidth = 0, markersize = 10)
+                plt.plot(feature_x, feature_y, color = 'green', marker = '*', markersize = 10, linewidth = 0, zorder = 2)
     else:
         colors = ['green' if the_selection else 'red' for the_selection in selected0]
         # plt.plot uses same color for all points
-        plt.scatter(peak_x0, peak_y0, color = colors, marker = 'o', linewidth = 0, s = 40)
+        plt.scatter(peak_x0, peak_y0, color = colors, marker = 'o', linewidth = 0, s = 40, zorder = 2)
         for (feature_x, feature_y) in features_xy:
             # convert from pandas series to value. Useful if value = NaN
             #print 'feature_x, feature_y', type(feature_x), type(feature_y)
@@ -798,7 +814,7 @@ def pt_display_make_plot(peak_x0, peak_y0, features_xy, selected0, file_name0,
             #if np.isnan(feature_x) or np.isnan(feature_y):
             #    print ('Warning!', 'feature lies outside cropped peaks.'  
             #            'Increase range of cropped peaks to include all features')
-            plt.scatter(feature_x.values, feature_y.values, color = colors, marker = '*', s = 40)
+            plt.scatter(feature_x.values, feature_y.values, color = colors, marker = '*', s = 40, zorder = 2)
     
     
     ax = plt.gca()

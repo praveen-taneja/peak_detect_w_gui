@@ -43,8 +43,8 @@ analysis_pars['display_deriv2'] = True #display_deriv2
 analysis_pars['PEAK_NPNTS_THRESH'] = 1 #PEAK_NPNTS_THRESH
 analysis_pars['DERIV2_THRESH'] = 0.5 #DERIV2_THRESH
 analysis_pars['PEAK_POLARITY'] = 1 #PEAK_POLARITY
-analysis_pars['START'] = 0 #START
-analysis_pars['END'] = 1801 #END
+analysis_pars['START'] = '' #START
+analysis_pars['END'] = '' #END
 analysis_pars['FILTER_WIN_SIZE'] = 5 #FILTER_WIN_SIZE
 analysis_pars['FILTER_SIGMA'] = 3.0 #FILTER_SIGMA
 analysis_pars['PEAK_PRE_CROP_WIN'] = '' #PEAK_PRE_CROP_WIN
@@ -105,8 +105,8 @@ class MyDialog(wx.Dialog):
         self.label_8 = wx.StaticText(self.notebook_1_pane_1, wx.ID_ANY, ("Down Sample"))
         self.text_ctrl_9 = wx.TextCtrl(self.notebook_1_pane_1, wx.ID_ANY, "5")
         self.label_9 = wx.StaticText(self.notebook_1_pane_1, wx.ID_ANY, ("Range"))
-        self.text_ctrl_10 = wx.TextCtrl(self.notebook_1_pane_1, wx.ID_ANY, "1000")
-        self.text_ctrl_11 = wx.TextCtrl(self.notebook_1_pane_1, wx.ID_ANY, "10000")
+        self.text_ctrl_10 = wx.TextCtrl(self.notebook_1_pane_1, wx.ID_ANY, "")
+        self.text_ctrl_11 = wx.TextCtrl(self.notebook_1_pane_1, wx.ID_ANY, "")
         self.label_10 = wx.StaticText(self.notebook_1_pane_1, wx.ID_ANY, ("Filter"))
         self.text_ctrl_12 = wx.TextCtrl(self.notebook_1_pane_1, wx.ID_ANY, "21")
         self.text_ctrl_13 = wx.TextCtrl(self.notebook_1_pane_1, wx.ID_ANY, "10")
@@ -165,7 +165,7 @@ class MyDialog(wx.Dialog):
     def OnCloseWindow(self, event):
         # http://stackoverflow.com/questions/26289275/how-do-i-stop-a-windows-
         #from-closing-after-i-raise-wx-evt-close-in-wxpython
-        dialog = (wx.MessageDialog(self, message = "Are you sure you want to" 
+        dialog = (wx.MessageDialog(self, message = "Are you sure you want to " 
                                 "quit?", caption = "Caption", style = 
                                 wx.YES_NO, pos = wx.DefaultPosition))
         response = dialog.ShowModal()
@@ -209,11 +209,11 @@ class MyDialog(wx.Dialog):
         self.text_ctrl_8.SetToolTipString(("Above the peak (Eg. 1e-3)"))
         self.label_8.SetToolTipString(("Down sampling factor if data is sampled at higher frequency than needed."))
         self.text_ctrl_9.SetToolTipString(("Eg. 5"))
-        self.label_9.SetToolTipString(("Start and end point of data indices to analyze for each trace"))
+        self.label_9.SetToolTipString(("Start and end point of data indices to analyze for each trace. Leave empty for full range."))
         self.text_ctrl_10.SetToolTipString(("Start point (Eg. 1000)"))
         self.text_ctrl_11.SetToolTipString(("End point (Eg. 10000)"))
         self.label_10.SetToolTipString(("Gaussian filter data if it is noisy (window size and sigma in points)."))
-        self.text_ctrl_12.SetToolTipString(("Window size (Eg. 21)"))
+        self.text_ctrl_12.SetToolTipString(("Not used any more. Set automatically")) # Window size (Eg. 21) 03/04/16
         self.text_ctrl_13.SetToolTipString(("Window sigma (10)"))
         self.label_11.SetToolTipString(("List of additional features to mark per peak"))
         self.text_ctrl_14.SetToolTipString(("Eg. Threshold1 Threshold2"))
@@ -240,7 +240,7 @@ class MyDialog(wx.Dialog):
         #self.text_ctrl_20.SetToolTip(wx.ToolTip(("Filename")))
         self.button_6.SetToolTip(wx.ToolTip(("Choose parameter file")))
         self.button_7.SetToolTip(wx.ToolTip(("About this software")))
-        self.notebook_1.SetMinSize((340, 320))
+        self.notebook_1.SetMinSize((500, 350))
         # end wxGlade
 
     def __do_layout(self):
@@ -383,7 +383,7 @@ class MyDialog(wx.Dialog):
         info = wx.AboutDialogInfo()
         info.Name = "Peak detect ML"
         info.Version = "0.2"
-        info.Copyright = "(C) 2015 Praveen Taneja"
+        info.Copyright = "(C) 2016 Praveen Taneja"
         info.Description = wordwrap(
             "Peak detect ML is a program to detect peaks and features (such as "
             "threshold, return to baseline) using machine learning. The use of " 
@@ -403,7 +403,7 @@ class MyDialog(wx.Dialog):
                         'ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, '
                         'OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR '
                         'OTHER DEALINGS IN THE SOFTWARE.')
-        info.License = wordwrap(licenseText, 500, wx.ClientDC(self))
+        info.License = wordwrap(licenseText, 400, wx.ClientDC(self))
 
         # Then we call wx.AboutBox giving it that info object
         wx.AboutBox(info)
@@ -472,8 +472,16 @@ class MyDialog(wx.Dialog):
         analysis_pars['yrange'] = (float(analysis_pars['PEAK_DISPLAY_Y_BELOW']), 
                                     float(analysis_pars['PEAK_DISPLAY_Y_ABOVE']) )
         analysis_pars['DOWN_SAMPLE_FACTOR'] = int(self.text_ctrl_9.GetValue()) #DOWN_SAMPLE_FACTOR
-        analysis_pars['START'] = int(self.text_ctrl_10.GetValue())
-        analysis_pars['END'] = int(self.text_ctrl_11.GetValue())
+        
+        if  self.text_ctrl_10.GetValue() == '':# or self.text_ctrl_10.GetValue() == None:
+            analysis_pars['START'] = '' # ie. start from 1st value
+        else:
+            analysis_pars['START'] = int(self.text_ctrl_10.GetValue())
+            
+        if  self.text_ctrl_11.GetValue() == '':# or self.text_ctrl_11.GetValue() == None:
+            analysis_pars['END'] = '' # ie. end on last value
+        else:
+            analysis_pars['END'] = int(self.text_ctrl_11.GetValue())
         analysis_pars['FILTER_WIN_SIZE'] = int(self.text_ctrl_12.GetValue())
         analysis_pars['FILTER_SIGMA'] = int(self.text_ctrl_13.GetValue())
         analysis_pars['detect_features_str'] = self.text_ctrl_14.GetValue()#.split()
@@ -528,8 +536,15 @@ class MyDialog(wx.Dialog):
                                     float(analysis_pars['PEAK_DISPLAY_Y_ABOVE']))
         
         self.text_ctrl_9.SetValue(analysis_pars['DOWN_SAMPLE_FACTOR']) #DOWN_SAMPLE_FACTOR
-        self.text_ctrl_10.SetValue(analysis_pars['START'])
-        self.text_ctrl_11.SetValue(analysis_pars['END'])
+        if analysis_pars['START'] == None:
+            self.text_ctrl_10.SetValue = ''
+        else:
+            self.text_ctrl_10.SetValue(analysis_pars['START'])
+        
+        if analysis_pars['END'] == None:
+            self.text_ctrl_11.SetValue = ''
+        else:
+            self.text_ctrl_11.SetValue(analysis_pars['END'])
         self.text_ctrl_12.SetValue(analysis_pars['FILTER_WIN_SIZE'])
         self.text_ctrl_13.SetValue(analysis_pars['FILTER_SIGMA'])
         
